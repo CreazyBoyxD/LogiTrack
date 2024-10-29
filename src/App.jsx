@@ -8,7 +8,7 @@ import Header from './components/Header';
 import Warehouse from './components/Warehouse';
 import Tracking from './components/Tracking';
 import Reports from './components/Reports';
-import Suppliers from './components/Suppliers'; // Import nowego komponentu
+import Suppliers from './components/Suppliers';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
@@ -34,7 +34,7 @@ function App() {
         <Route path="/warehouse" element={isAuthenticated ? <Warehouse /> : <Navigate to="/login" />} />
         <Route path="/tracking" element={isAuthenticated ? <Tracking /> : <Navigate to="/login" />} />
         <Route path="/reports" element={isAuthenticated ? <Reports /> : <Navigate to="/login" />} />
-        <Route path="/suppliers" element={isAuthenticated ? <Suppliers /> : <Navigate to="/login" />} /> {/* Nowa ścieżka */}
+        <Route path="/suppliers" element={isAuthenticated ? <Suppliers /> : <Navigate to="/login" />} />
       </Routes>
     </Router>
   );
