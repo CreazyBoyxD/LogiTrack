@@ -10,6 +10,9 @@ import Tracking from './components/Tracking';
 import Reports from './components/Reports';
 import Suppliers from './components/Suppliers';
 
+// Link do VPS
+export const BASE_URL = 'https://vps.logitrack.site:40761';
+
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
 

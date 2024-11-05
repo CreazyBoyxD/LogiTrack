@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { BASE_URL } from '../App.jsx';
 
 const Login = ({ onLogin }) => {
-  const [formData, setFormData] = useState({ email: '', password: '' });
+  const [formData, setFormData] = useState({ username: '', password: '' });
   const [message, setMessage] = useState('');
 
   const handleChange = (e) => {
@@ -11,8 +12,15 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Sprawdzenie, czy pola username i password są wypełnione
+    if (!formData.username || !formData.password) {
+      setMessage('Wszystkie pola są wymagane');
+      return;
+    }
+
     try {
-      const response = await axios.post('http://localhost:5000/api/auth/login', formData);
+      const response = await axios.post(`${BASE_URL}/api/auth/login`, formData);
       setMessage(response.data.message);
       
       // Przechowywanie tokenu w localStorage
@@ -28,9 +36,9 @@ const Login = ({ onLogin }) => {
       <h2 className="text-2xl font-bold mb-4">Logowanie</h2>
       <form onSubmit={handleSubmit}>
         <input
-          type="email"
-          name="email"
-          placeholder="Email"
+          type="text"
+          name="username"
+          placeholder="Nazwa użytkownika"
           onChange={handleChange}
           className="border p-2 mb-4 w-full"
         />
