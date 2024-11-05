@@ -1,12 +1,23 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 
-const Header = ({ onLogout, isAuthenticated }) => {
+const Header = ({ onLogout, isAuthenticated, role }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const toggleMobileMenu = () => {
     setIsMobileMenuOpen(!isMobileMenuOpen);
   };
+
+  // Define accessible links based on role
+  const accessibleLinks = {
+    admin: ['/', '/warehouse', '/tracking', '/suppliers', '/reports'],
+    kurier: ['/', '/tracking'],
+    magazynier: ['/', '/warehouse', '/tracking', '/suppliers'],
+    gość: ['/']
+  };
+
+  // Only show links the user has access to
+  const roleLinks = accessibleLinks[role] || [];
 
   return (
     <header className="bg-blue-600 text-white shadow-lg relative z-10">
@@ -29,11 +40,11 @@ const Header = ({ onLogout, isAuthenticated }) => {
 
         {/* Desktop navigation */}
         <nav className="hidden md:flex space-x-6 items-center">
-          <Link to="/" className="hover:text-yellow-400 transition">Dashboard</Link>
-          <Link to="/warehouse" className="hover:text-yellow-400 transition">Zarządzanie Magazynem</Link>
-          <Link to="/tracking" className="hover:text-yellow-400 transition">Śledzenie Dostaw</Link>
-          <Link to="/suppliers" className="hover:text-yellow-400 transition">Zarządzanie Dostawcami</Link>
-          <Link to="/reports" className="hover:text-yellow-400 transition">Raporty</Link>
+          {roleLinks.includes('/') && <Link to="/" className="hover:text-yellow-400 transition">Dashboard</Link>}
+          {roleLinks.includes('/warehouse') && <Link to="/warehouse" className="hover:text-yellow-400 transition">Zarządzanie Magazynem</Link>}
+          {roleLinks.includes('/tracking') && <Link to="/tracking" className="hover:text-yellow-400 transition">Śledzenie Dostaw</Link>}
+          {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:text-yellow-400 transition">Zarządzanie Dostawcami</Link>}
+          {roleLinks.includes('/reports') && <Link to="/reports" className="hover:text-yellow-400 transition">Raporty</Link>}
         </nav>
 
         {/* Desktop profile links */}
@@ -55,11 +66,11 @@ const Header = ({ onLogout, isAuthenticated }) => {
       {isMobileMenuOpen && (
         <div className="absolute top-full left-0 right-0 bg-blue-700 text-white rounded-b-lg shadow-lg z-20">
           <nav className="flex flex-col space-y-2 p-4 text-center">
-            <Link to="/" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Dashboard</Link>
-            <Link to="/warehouse" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Magazynem</Link>
-            <Link to="/tracking" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Śledzenie Dostaw</Link>
-            <Link to="/suppliers" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Dostawcami</Link>
-            <Link to="/reports" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Raporty</Link>
+            {roleLinks.includes('/') && <Link to="/" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Dashboard</Link>}
+            {roleLinks.includes('/warehouse') && <Link to="/warehouse" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Magazynem</Link>}
+            {roleLinks.includes('/tracking') && <Link to="/tracking" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Śledzenie Dostaw</Link>}
+            {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Dostawcami</Link>}
+            {roleLinks.includes('/reports') && <Link to="/reports" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Raporty</Link>}
           </nav>
           <div className="flex flex-col space-y-2 p-4 text-center border-t border-blue-500">
             {isAuthenticated ? (

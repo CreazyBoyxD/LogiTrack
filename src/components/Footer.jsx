@@ -1,5 +1,4 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
 
 const Footer = () => {
   return (
@@ -10,15 +9,6 @@ const Footer = () => {
         <div className="flex items-center space-x-3">
           <img src={`${process.env.PUBLIC_URL}/logo_white.png`} alt="Logo" className="h-8" />
           <span className="text-lg font-bold">LogiTrack</span>
-        </div>
-        
-        {/* Links */}
-        <div className="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-8 text-center">
-          <Link to="/" className="hover:text-yellow-400 transition">Dashboard</Link>
-          <Link to="/warehouse" className="hover:text-yellow-400 transition">Zarządzanie Magazynem</Link>
-          <Link to="/tracking" className="hover:text-yellow-400 transition">Śledzenie Dostaw</Link>
-          <Link to="/suppliers" className="hover:text-yellow-400 transition">Zarządzanie Dostawcami</Link>
-          <Link to="/reports" className="hover:text-yellow-400 transition">Raporty</Link>
         </div>
 
         {/* Social Media Links */}

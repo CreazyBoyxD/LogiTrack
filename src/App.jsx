@@ -10,39 +10,83 @@ import Tracking from './components/Tracking';
 import Reports from './components/Reports';
 import Suppliers from './components/Suppliers';
 import Footer from './components/Footer';
+import NotAuthorized from './components/NotAuthorized.jsx'; // Page for unauthorized access
 
-// Link do VPS
+// Link to VPS
 export const BASE_URL = 'https://vps.logitrack.site:40761';
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(!!localStorage.getItem('token'));
+  const [userRole, setUserRole] = useState(localStorage.getItem('role') || 'gość');
 
-  const handleLogin = () => {
+  const handleLogin = (role) => {
     setIsAuthenticated(true);
+    setUserRole(role);
+    localStorage.setItem('role', role); // Save the role to localStorage
   };
 
   const handleLogout = () => {
     localStorage.removeItem('token');
+    localStorage.removeItem('role');
     setIsAuthenticated(false);
+    setUserRole('gość');
   };
+
+  // Helper function to check if a user has the necessary role for a page
+  const checkRoleAccess = (allowedRoles) => allowedRoles.includes(userRole);
 
   return (
     <Router>
       <div className="flex flex-col min-h-screen">
-        
-        {/* Heaher */}
-        <Header onLogout={handleLogout} isAuthenticated={isAuthenticated} />
-        
+        {/* Header */}
+        <Header onLogout={handleLogout} isAuthenticated={isAuthenticated} role={userRole} />
+
         {/* Main content */}
         <main className="flex-grow">
           <Routes>
+            {/* Default dashboard access for all roles */}
             <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+
+            {/* Registration and login routes */}
             <Route path="/register" element={<Register />} />
             <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
-            <Route path="/warehouse" element={isAuthenticated ? <Warehouse /> : <Navigate to="/login" />} />
-            <Route path="/tracking" element={isAuthenticated ? <Tracking /> : <Navigate to="/login" />} />
-            <Route path="/reports" element={isAuthenticated ? <Reports /> : <Navigate to="/login" />} />
-            <Route path="/suppliers" element={isAuthenticated ? <Suppliers /> : <Navigate to="/login" />} />
+
+            {/* Role-based routes */}
+            <Route
+              path="/warehouse"
+              element={
+                isAuthenticated && checkRoleAccess(['admin', 'magazynier'])
+                  ? <Warehouse />
+                  : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
+              }
+            />
+            <Route
+              path="/tracking"
+              element={
+                isAuthenticated && checkRoleAccess(['admin', 'kurier', 'magazynier'])
+                  ? <Tracking />
+                  : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
+              }
+            />
+            <Route
+              path="/reports"
+              element={
+                isAuthenticated && checkRoleAccess(['admin'])
+                  ? <Reports />
+                  : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
+              }
+            />
+            <Route
+              path="/suppliers"
+              element={
+                isAuthenticated && checkRoleAccess(['admin', 'magazynier'])
+                  ? <Suppliers />
+                  : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
+              }
+            />
+
+            {/* Unauthorized page for restricted access */}
+            <Route path="/not-authorized" element={<NotAuthorized />} />
           </Routes>
         </main>
 
