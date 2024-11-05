@@ -59,7 +59,7 @@ const Register = () => {
           <div className="flex space-x-4">
             <Link
               to="/login"
-              className="w-1/2 bg-yellow-500 text-blue-900 py-2 rounded-lg font-semibold text-center hover:bg-yellow-400 transition-colors"
+              className="w-1/2 bg-yellow-500 text-blue-900 py-2 rounded-lg font-semibold hover:bg-yellow-400 transition-colors"
             >
               ZALOGUJ SIĘ
             </Link>

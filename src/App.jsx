@@ -9,6 +9,7 @@ import Warehouse from './components/Warehouse';
 import Tracking from './components/Tracking';
 import Reports from './components/Reports';
 import Suppliers from './components/Suppliers';
+import Footer from './components/Footer';
 
 // Link do VPS
 export const BASE_URL = 'https://vps.logitrack.site:40761';
@@ -27,18 +28,27 @@ function App() {
 
   return (
     <Router>
-      <Header onLogout={handleLogout} isAuthenticated={isAuthenticated} />
-
-      <Routes>
-        <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
+      <div className="flex flex-col min-h-screen">
         
-        <Route path="/warehouse" element={isAuthenticated ? <Warehouse /> : <Navigate to="/login" />} />
-        <Route path="/tracking" element={isAuthenticated ? <Tracking /> : <Navigate to="/login" />} />
-        <Route path="/reports" element={isAuthenticated ? <Reports /> : <Navigate to="/login" />} />
-        <Route path="/suppliers" element={isAuthenticated ? <Suppliers /> : <Navigate to="/login" />} />
-      </Routes>
+        {/* Heaher */}
+        <Header onLogout={handleLogout} isAuthenticated={isAuthenticated} />
+        
+        {/* Main content */}
+        <main className="flex-grow">
+          <Routes>
+            <Route path="/" element={isAuthenticated ? <Dashboard /> : <Navigate to="/login" />} />
+            <Route path="/register" element={<Register />} />
+            <Route path="/login" element={isAuthenticated ? <Navigate to="/" /> : <Login onLogin={handleLogin} />} />
+            <Route path="/warehouse" element={isAuthenticated ? <Warehouse /> : <Navigate to="/login" />} />
+            <Route path="/tracking" element={isAuthenticated ? <Tracking /> : <Navigate to="/login" />} />
+            <Route path="/reports" element={isAuthenticated ? <Reports /> : <Navigate to="/login" />} />
+            <Route path="/suppliers" element={isAuthenticated ? <Suppliers /> : <Navigate to="/login" />} />
+          </Routes>
+        </main>
+
+        {/* Footer */}
+        <Footer />
+      </div>
     </Router>
   );
 }
