@@ -37,24 +37,25 @@ const Register = () => {
 
   const handleConfirm = async (e) => {
     e.preventDefault();
-
+  
     if (!confirmationCode) {
       setMessage('Wprowadź kod potwierdzenia');
       return;
     }
-
+  
     try {
-      // Send the email and confirmation code to the backend for verification
-      const response = await axios.post(`${BASE_URL}/api/auth/confirm`, { email, confirmationCode });
+      const response = await axios.post(`${BASE_URL}/api/auth/confirm`, {
+        username: formData.username,
+        confirmationCode
+      });
       setMessage(response.data.message);
-
-      // On successful confirmation, hide the modal and redirect to login
+  
       setShowConfirmationModal(false);
       window.location.href = '/login';
     } catch (error) {
       setMessage(error.response?.data?.message || 'Błąd serwera');
     }
-  };
+  };  
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-300 to-blue-100 px-4">
