@@ -8,7 +8,6 @@ const Register = () => {
   const [message, setMessage] = useState('');
   const [showConfirmationModal, setShowConfirmationModal] = useState(false);
   const [confirmationCode, setConfirmationCode] = useState('');
-  const [email, setEmail] = useState('');
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -23,39 +22,39 @@ const Register = () => {
     }
 
     try {
-      // Send registration data to the backend
+      // Wyślij dane rejestracyjne do backendu
       const response = await axios.post(`${BASE_URL}/api/auth/register`, formData);
       setMessage(response.data.message);
 
-      // Set email and show the confirmation modal
-      setEmail(formData.email);
+      // Pokaż modal potwierdzenia po pomyślnej rejestracji
       setShowConfirmationModal(true);
     } catch (error) {
+      // Ustaw wiadomość o błędzie z odpowiedzi serwera, jeśli użytkownik już istnieje
       setMessage(error.response?.data?.message || 'Błąd serwera');
     }
   };
 
   const handleConfirm = async (e) => {
     e.preventDefault();
-  
+
     if (!confirmationCode) {
       setMessage('Wprowadź kod potwierdzenia');
       return;
     }
-  
+
     try {
       const response = await axios.post(`${BASE_URL}/api/auth/confirm`, {
         username: formData.username,
         confirmationCode
       });
       setMessage(response.data.message);
-  
+
       setShowConfirmationModal(false);
       window.location.href = '/login';
     } catch (error) {
       setMessage(error.response?.data?.message || 'Błąd serwera');
     }
-  };  
+  };
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gradient-to-r from-blue-300 to-blue-100 px-4">
@@ -69,7 +68,7 @@ const Register = () => {
             type="text"
             name="username"
             placeholder="Nazwa użytkownika"
-            autoComplete='username'
+            autoComplete="username"
             onChange={handleChange}
             className="w-full p-3 border-b-2 border-gray-300 focus:outline-none focus:border-blue-600"
           />
@@ -77,7 +76,7 @@ const Register = () => {
             type="email"
             name="email"
             placeholder="Email"
-            autoCapitalize='email'
+            autoComplete="email"
             onChange={handleChange}
             className="w-full p-3 border-b-2 border-gray-300 focus:outline-none focus:border-blue-600"
           />
@@ -104,13 +103,15 @@ const Register = () => {
             </button>
           </div>
         </form>
+        
+        {message && <p className="mt-4 text-center text-red-500">{message}</p>}
 
         {/* Confirmation Code Modal */}
         {showConfirmationModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
             <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
               <h2 className="text-2xl font-bold text-gray-800 mb-4 text-center">Potwierdzenie Email</h2>
-              <p className="text-gray-500 text-center mb-6">Wprowadź kod wysłany na {email}</p>
+              <p className="text-gray-500 text-center mb-6">Wprowadź kod wysłany na {formData.email}</p>
               <form onSubmit={handleConfirm} className="space-y-4">
                 <input
                   type="text"
