@@ -132,6 +132,9 @@ const Login = ({ onLogin }) => {
           </div>
         </form>
 
+        {message && <p className="mt-4 text-center text-red-500">{message}</p>}
+
+        {/* Confirmation Code Modal */}
         {showConfirmationModal && (
           <div className="fixed inset-0 flex items-center justify-center bg-gray-900 bg-opacity-50 z-50">
             <div className="bg-white shadow-lg rounded-lg p-6 w-full max-w-md">
