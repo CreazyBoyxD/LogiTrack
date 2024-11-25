@@ -21,34 +21,38 @@ const Login = ({ onLogin }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
     if (!formData.username || !formData.password) {
       setMessage('Wszystkie pola są wymagane');
       return;
     }
-
+  
     try {
       const response = await axios.post(`${BASE_URL}/api/auth/login`, formData);
-      const { token, role } = response.data;
+      const { token, role, userId } = response.data; // Zakładamy, że serwer zwraca userId
       setMessage(response.data.message);
-
+  
+      // Przechowaj token
       if (rememberMe) {
         localStorage.setItem('token', token);
       } else {
         sessionStorage.setItem('token', token);
       }
-
+  
+      // Przechowaj ID kuriera w localStorage
+      localStorage.setItem('courierId', userId);
+  
       onLogin(role);
     } catch (error) {
       const errorMessage = error.response?.data?.message || 'Błąd serwera';
       setMessage(errorMessage);
-
+  
       if (errorMessage === 'Email not verified. A new code has been sent.') {
         setEmail(formData.username);
         setShowConfirmationModal(true);
       }
     }
-  };
+  };  
 
   const handleConfirm = async (e) => {
     e.preventDefault();
