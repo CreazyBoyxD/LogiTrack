@@ -66,34 +66,11 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Aktualizacja lokalizacji kuriera
-  useEffect(() => {
-    if (!selectedCourier) return;
-  
-    const fetchCourierLocation = async () => {
-      try {
-        const response = await axios.get(`${BASE_URL}/api/couriers/${selectedCourier.courier_id}`);
-        const updatedCourier = response.data;
-  
-        // Zaktualizuj lokalizację wybranego kuriera
-        setSelectedCourier((prev) => ({
-          ...prev,
-          latitude: updatedCourier.latitude,
-          longitude: updatedCourier.longitude,
-        }));
-      } catch (error) {
-        console.error(`Error updating location for courier ${selectedCourier.courier_id}:`, error);
-      }
-    };
-  
-    const interval = setInterval(fetchCourierLocation, 30000); // Aktualizacja co 30 sekund
-    return () => clearInterval(interval); // Usuń interwał przy odmontowaniu komponentu
-  }, [selectedCourier]);  
-
   // Obliczanie trasy dla wybranego kuriera
   useEffect(() => {
-    if (!selectedCourier || !selectedCourier.destination_lat || !selectedCourier.destination_lng) return;
-  
+    if (!selectedCourier || !selectedCourier.destination_lat || !selectedCourier.destination_lng)
+      return;
+
     const origin = {
       lat: parseFloat(selectedCourier.latitude),
       lng: parseFloat(selectedCourier.longitude),
@@ -102,7 +79,7 @@ const Dashboard = () => {
       lat: parseFloat(selectedCourier.destination_lat),
       lng: parseFloat(selectedCourier.destination_lng),
     };
-  
+
     new window.google.maps.DirectionsService().route(
       {
         origin,
@@ -116,22 +93,39 @@ const Dashboard = () => {
             [selectedCourier.courier_id]: result,
           }));
         } else {
-          console.error(`Error fetching directions for courier ${selectedCourier.courier_id}:`, status);
+          console.error(
+            `Error fetching directions for courier ${selectedCourier.courier_id}:`,
+            status
+          );
         }
       }
     );
-  }, [selectedCourier]);  
+  }, [selectedCourier]);
 
   // Funkcja do obsługi kliknięcia na kuriera
-  const handleCourierClick = (courier) => {
-    setSelectedCourier(courier); // Ustaw wybranego kuriera
-  };
-
- // Funkcja do obsługi kliknięcia na kuriera
-  const handleCancelTracking = () => {
-    setSelectedCourier(null); // Resetuj wybranego kuriera
-    setDirections({}); // Usuń trasy
+  const handleCourierClick = async (courier) => {
+    setSelectedCourier(courier);
+  
+    try {
+      const response = await axios.get(`${BASE_URL}/api/couriers/${courier.courier_id}/destination`);
+      setSelectedCourier((prev) => ({
+        ...prev,
+        destination_address: response.data?.destination_address || 'Brak celu',
+      }));
+    } catch (error) {
+      console.error('Error fetching courier destination:', error);
+      setSelectedCourier((prev) => ({
+        ...prev,
+        destination_address: 'Brak celu',
+      }));
+    }
   };  
+
+  // Funkcja do resetowania wybranego kuriera
+  const handleCancelTracking = () => {
+    setSelectedCourier(null);
+    setDirections({});
+  };
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
@@ -168,22 +162,17 @@ const Dashboard = () => {
         <h2 className="text-xl font-semibold mb-4">Mapa Śledzenia Dostaw</h2>
         {isLoaded ? (
           <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={defaultCenter}>
-            {/* Markery dla kurierów */}
-            {couriers
-              .filter(courier => !isNaN(courier.latitude) && !isNaN(courier.longitude))
-              .map(courier => (
-                <Marker
-                  key={courier.courier_id}
-                  position={{
-                    lat: parseFloat(courier.latitude),
-                    lng: parseFloat(courier.longitude),
-                  }}
-                  label={`${courier.courier_id}`}
-                  onClick={() => handleCourierClick(courier)}
-                />
-              ))}
-
-            {/* Trasa dla wybranego kuriera */}
+            {couriers.map((courier) => (
+              <Marker
+                key={courier.courier_id}
+                position={{
+                  lat: parseFloat(courier.latitude),
+                  lng: parseFloat(courier.longitude),
+                }}
+                label={`${courier.courier_id}`}
+                onClick={() => handleCourierClick(courier)}
+              />
+            ))}
             {selectedCourier && directions[selectedCourier.courier_id] && (
               <DirectionsRenderer
                 options={{
@@ -195,14 +184,26 @@ const Dashboard = () => {
         ) : (
           <div>Ładowanie mapy...</div>
         )}
-        {/* Przycisk "Anuluj śledzenie" */}
         {selectedCourier && (
-          <button
-            className="mt-4 bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-            onClick={handleCancelTracking}
-          >
-            Anuluj śledzenie
-          </button>
+          <div className="mt-4 p-4 bg-gray-100 border border-gray-300 rounded">
+            <h3 className="text-xl font-semibold mb-4 text-gray-700">Szczegóły Kuriera</h3>
+            <p>
+              <strong>ID Kuriera:</strong> {selectedCourier.courier_id}
+            </p>
+            <p>
+              <strong>Status:</strong>{' '}
+              {selectedCourier.destination_address !== 'Brak celu' ? 'W trasie' : 'Nie ma celu'}
+            </p>
+            <p>
+              <strong>Miejsce Docelowe:</strong> {selectedCourier.destination_address}
+            </p>
+            <button
+              onClick={handleCancelTracking}
+              className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
+            >
+              Anuluj śledzenie
+            </button>
+          </div>
         )}
       </div>
     </div>
