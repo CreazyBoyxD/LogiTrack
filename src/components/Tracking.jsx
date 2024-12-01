@@ -60,6 +60,7 @@ const Tracking = () => {
   const fetchDeliveryDuration = async (deliveryId) => {
     try {
       const response = await axios.get(`${BASE_URL}/api/deliveries/${deliveryId}/duration`);
+      console.log('Delivery duration: ', response.data);
     } catch (error) {
       console.error('Błąd podczas pobierania czasu dostawy:', error);
     }
