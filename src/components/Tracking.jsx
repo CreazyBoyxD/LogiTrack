@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { GoogleMap, useJsApiLoader, Marker, DirectionsRenderer } from '@react-google-maps/api';
 import axios from 'axios';
-import { GoogleMap, useLoadScript, Marker, DirectionsRenderer } from '@react-google-maps/api';
 import { BASE_URL } from '../App.jsx';
 
 const mapContainerStyle = {
@@ -14,10 +14,6 @@ const defaultCenter = {
 };
 
 const Tracking = () => {
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY, // Klucz API
-  });
-
   const [deliveries, setDeliveries] = useState([]);
   const [selectedDelivery, setSelectedDelivery] = useState(null);
   const [origin, setOrigin] = useState(defaultCenter);
@@ -25,6 +21,10 @@ const Tracking = () => {
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [estimatedTimes, setEstimatedTimes] = useState({});
   const [isNavigating, setIsNavigating] = useState(false);
+
+  const { isLoaded } = useJsApiLoader({
+    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+  });
 
   // Aktualizacja lokalizacji kuriera
   useEffect(() => {
@@ -47,21 +47,35 @@ const Tracking = () => {
     return () => clearInterval(interval); // Usuń interwał przy demontażu komponentu
   }, []);
 
+  const startDelivery = async (deliveryId) => {
+    try {
+      console.log('Delivery ID:', deliveryId);
+      await axios.put(`${BASE_URL}/api/deliveries/${deliveryId}/start`);
+      console.log(`Czas rozpoczęcia dostawy ${deliveryId} został zapisany.`);
+    } catch (error) {
+      console.error('Błąd podczas zapisywania czasu rozpoczęcia dostawy:', error);
+    }
+  };  
+
+  const fetchDeliveryDuration = async (deliveryId) => {
+    try {
+      const response = await axios.get(`${BASE_URL}/api/deliveries/${deliveryId}/duration`);
+    } catch (error) {
+      console.error('Błąd podczas pobierania czasu dostawy:', error);
+    }
+  };
+  
   const markDeliveryAsCompleted = async (deliveryId) => {
     try {
-      await axios.put(`${BASE_URL}/api/deliveries/${deliveryId}`, {
-        status: 'delivered', // Nowy status
-      });
-  
-      // Usuń dostawę z listy po pomyślnej aktualizacji
+      await axios.put(`${BASE_URL}/api/deliveries/${deliveryId}/complete`);
       setDeliveries((prev) => prev.filter((delivery) => delivery.id !== deliveryId));
-      setSelectedDelivery(null); // Zresetuj wybraną dostawę
-      console.log(`Dostawa ${deliveryId} została oznaczona jako wykonana`);
+      setSelectedDelivery(null); // Resetuj wybraną dostawę
+      console.log(`Dostawa ${deliveryId} została oznaczona jako zakończona.`);
     } catch (error) {
-      console.error('Błąd podczas oznaczania dostawy jako wykonanej:', error);
+      console.error('Błąd podczas oznaczania dostawy jako zakończonej:', error);
     }
-  };   
-
+  };
+  
   const isSignificantChange = (oldPosition, newPosition, threshold = 0.001) => {
     const latDiff = Math.abs(oldPosition.lat - newPosition.lat);
     const lngDiff = Math.abs(oldPosition.lng - newPosition.lng);
@@ -227,7 +241,6 @@ const Tracking = () => {
     setMapCenter(origin);
   };
 
-  if (loadError) return <div>Błąd ładowania mapy</div>;
   if (!isLoaded) return <div>Ładowanie mapy...</div>;
 
   return (
@@ -253,7 +266,11 @@ const Tracking = () => {
                     </button>
                     <button
                       className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                      onClick={() => handleNavigate(delivery)}
+                      onClick={() => {
+                        handleNavigate(delivery);
+                        startDelivery(delivery.id);
+                        setIsNavigating(true);
+                      }}
                     >
                       Jedź
                     </button>
@@ -326,7 +343,8 @@ const Tracking = () => {
                     className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                     onClick={() => {
                       handleNavigate(selectedDelivery);
-                      setIsNavigating(true); // Zmień stan na "nawigowanie"
+                      startDelivery(selectedDelivery.id);
+                      setIsNavigating(true);
                     }}
                   >
                     Rozpocznij trasę
@@ -336,7 +354,7 @@ const Tracking = () => {
                     className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
                     onClick={() => {
                       handleCancelNavigation();
-                      setIsNavigating(false); // Zresetuj stan na "nie nawigowanie"
+                      setIsNavigating(false);
                     }}
                   >
                     Anuluj trasę
@@ -344,7 +362,11 @@ const Tracking = () => {
                 )}
                 <button
                   className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                  onClick={() => markDeliveryAsCompleted(selectedDelivery.id)}
+                  onClick={() => {
+                    handleCancelNavigation();
+                    markDeliveryAsCompleted(selectedDelivery.id);
+                    fetchDeliveryDuration(selectedDelivery.id);
+                  }}
                 >
                   Oznacz jako wykonane
                 </button>

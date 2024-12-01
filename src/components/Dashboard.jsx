@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleMap, Marker, DirectionsRenderer, useJsApiLoader } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, DirectionsRenderer } from '@react-google-maps/api';
 import axios from 'axios';
 import { BASE_URL } from '../App.jsx';
 
@@ -16,11 +16,39 @@ const defaultCenter = {
 const Dashboard = () => {
   const [couriers, setCouriers] = useState([]);
   const [directions, setDirections] = useState({});
-  const [selectedCourier, setSelectedCourier] = useState(null); // Wybrany kurier
+  const [selectedCourier, setSelectedCourier] = useState(null);
+  const [orderStats, setOrderStats] = useState({
+    in_progress: 0,
+    delivered_today: 0,
+    delayed: 0,
+  });
+  const [deliveryStats, setDeliveryStats] = useState({
+    vehiclesInTransit: 0,
+    averageDeliveryTime: 0,
+    nextDelivery: null,
+  });
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
   });
+
+  // Pobieranie statystyk z bazy danych
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const response1 = await axios.get(`${BASE_URL}/api/delivery-stats`);
+        const response2 = await axios.get(`${BASE_URL}/api/order-stats`);
+        setDeliveryStats(response1.data);
+        setOrderStats(response2.data);
+      } catch (error) {
+        console.error('Błąd podczas pobierania statystyk:', error);
+      }
+    };
+
+    fetchStats();
+    const interval = setInterval(fetchStats, 60000); // Aktualizacja co minutę
+    return () => clearInterval(interval);
+  }, []);
 
   // Pobierz lokalizacje kurierów
   useEffect(() => {
@@ -109,14 +137,37 @@ const Dashboard = () => {
     <div className="p-8 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
 
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+
+        {/* Sekcja Przeglądu Magazynu */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Przegląd Magazynu</h2>
+          <p>Liczba produktów: 120</p>
+          <p>Stan magazynowy: 75%</p>
+          <p>Produkty wymagające uzupełnienia: 5</p>
+        </div>
+
+        {/* Sekcja Aktywnych Zamówień */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Aktywne Zamówienia</h2>
+          <p>Zamówienia w trakcie realizacji: {orderStats.in_progress}</p>
+          <p>Zamówienia dostarczone dzisiaj: {orderStats.delivered_today}</p>
+          <p>Opóźnione zamówienia: {orderStats.delayed}</p>
+        </div>
+
+        {/* Sekcja Śledzenia Dostaw */}
+        <div className="bg-white rounded-lg shadow p-6">
+          <h2 className="text-xl font-semibold mb-4">Śledzenie Dostaw</h2>
+          <p>Pojazdy w trasie: {deliveryStats.vehiclesInTransit}</p>
+          <p>Średni czas dostawy: {deliveryStats.averageDeliveryTime} min</p>
+          <p>Najbliższa dostawa: {deliveryStats.nextDelivery ? deliveryStats.nextDelivery.slice(0, 5) : 'Brak'}</p>
+        </div>
+      </div>
+
       <div className="bg-white rounded-lg shadow p-6 mt-8">
         <h2 className="text-xl font-semibold mb-4">Mapa Śledzenia Dostaw</h2>
         {isLoaded ? (
-          <GoogleMap
-            mapContainerStyle={mapContainerStyle}
-            zoom={12}
-            center={defaultCenter}
-          >
+          <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={defaultCenter}>
             {/* Markery dla kurierów */}
             {couriers
               .filter(courier => !isNaN(courier.latitude) && !isNaN(courier.longitude))
