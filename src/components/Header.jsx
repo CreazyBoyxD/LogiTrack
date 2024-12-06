@@ -45,6 +45,8 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
           {roleLinks.includes('/tracking') && <Link to="/tracking" className="hover:text-yellow-400 transition">Śledzenie Dostaw</Link>}
           {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:text-yellow-400 transition">Zarządzanie Dostawcami</Link>}
           {roleLinks.includes('/reports') && <Link to="/reports" className="hover:text-yellow-400 transition">Raporty</Link>}
+          <Link to="/faq" className="hover:text-yellow-400 transition">FAQ</Link>
+          <Link to="/terms-and-conditions" className="hover:text-yellow-400 transition">Warunki Korzystania</Link>
         </nav>
 
         {/* Desktop profile links */}
@@ -71,6 +73,8 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
             {roleLinks.includes('/tracking') && <Link to="/tracking" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Śledzenie Dostaw</Link>}
             {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Dostawcami</Link>}
             {roleLinks.includes('/reports') && <Link to="/reports" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Raporty</Link>}
+            <Link to="/faq" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">FAQ</Link>
+            <Link to="/terms-and-conditions" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Warunki Korzystania</Link>
           </nav>
           <div className="flex flex-col space-y-2 p-4 text-center border-t border-blue-500">
             {isAuthenticated ? (

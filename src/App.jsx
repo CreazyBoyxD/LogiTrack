@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import './App.css';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import Header from './components/Header';
+import Footer from './components/Footer';
 import Dashboard from './components/Dashboard';
 import Register from './components/Register';
 import Login from './components/Login';
-import Header from './components/Header';
+import Suppliers from './components/Suppliers';
 import Warehouse from './components/Warehouse';
 import Tracking from './components/Tracking';
 import Reports from './components/Reports';
-import Suppliers from './components/Suppliers';
-import Footer from './components/Footer';
-import NotAuthorized from './components/NotAuthorized.jsx'; // Page for unauthorized access
+import NotAuthorized from './components/NotAuthorized';
+import FAQ from './components/FAQ';
+import TermsAndConditions from './components/TermsAndConditions';
 
 // Link to VPS
 export const BASE_URL = 'https://vps.logitrack.site:40761';
@@ -87,6 +88,8 @@ function App() {
 
             {/* Unauthorized page for restricted access */}
             <Route path="/not-authorized" element={<NotAuthorized />} />
+            <Route path="/faq" element={<FAQ />} />
+            <Route path="/terms-and-conditions" element={<TermsAndConditions />} />
           </Routes>
         </main>
 
