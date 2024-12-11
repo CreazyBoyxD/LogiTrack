@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { GoogleMap, useJsApiLoader, Marker, DirectionsRenderer } from '@react-google-maps/api';
+import { GoogleMap, useJsApiLoader, Marker, DirectionsRenderer, TrafficLayer } from '@react-google-maps/api';
 import axios from 'axios';
 import { BASE_URL } from '../App.jsx';
 
@@ -17,6 +17,7 @@ const Dashboard = () => {
   const [couriers, setCouriers] = useState([]);
   const [directions, setDirections] = useState({});
   const [selectedCourier, setSelectedCourier] = useState(null);
+  const [showTrafficLayer, setShowTrafficLayer] = useState(false);
   const [orderStats, setOrderStats] = useState({
     in_progress: 0,
     delivered_today: 0,
@@ -30,9 +31,9 @@ const Dashboard = () => {
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    version: "3.58",
   });
 
-  // Pobieranie statystyk z bazy danych
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -46,11 +47,10 @@ const Dashboard = () => {
     };
 
     fetchStats();
-    const interval = setInterval(fetchStats, 60000); // Aktualizacja co minutę
+    const interval = setInterval(fetchStats, 60000);
     return () => clearInterval(interval);
   }, []);
 
-  // Pobierz lokalizacje kurierów
   useEffect(() => {
     const fetchCouriers = async () => {
       try {
@@ -66,7 +66,6 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, []);
 
-  // Obliczanie trasy dla wybranego kuriera
   useEffect(() => {
     if (!selectedCourier || !selectedCourier.destination_lat || !selectedCourier.destination_lng)
       return;
@@ -102,10 +101,8 @@ const Dashboard = () => {
     );
   }, [selectedCourier]);
 
-  // Funkcja do obsługi kliknięcia na kuriera
   const handleCourierClick = async (courier) => {
     setSelectedCourier(courier);
-  
     try {
       const response = await axios.get(`${BASE_URL}/api/couriers/${courier.courier_id}/destination`);
       setSelectedCourier((prev) => ({
@@ -130,9 +127,7 @@ const Dashboard = () => {
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
       <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
-
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-
         {/* Sekcja Przeglądu Magazynu */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Przegląd Magazynu</h2>
@@ -140,7 +135,6 @@ const Dashboard = () => {
           <p>Stan magazynowy: 75%</p>
           <p>Produkty wymagające uzupełnienia: 5</p>
         </div>
-
         {/* Sekcja Aktywnych Zamówień */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Aktywne Zamówienia</h2>
@@ -148,7 +142,6 @@ const Dashboard = () => {
           <p>Zamówienia dostarczone dzisiaj: {orderStats.delivered_today}</p>
           <p>Opóźnione zamówienia: {orderStats.delayed}</p>
         </div>
-
         {/* Sekcja Śledzenia Dostaw */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Śledzenie Dostaw</h2>
@@ -160,6 +153,12 @@ const Dashboard = () => {
 
       <div className="bg-white rounded-lg shadow p-6 mt-8">
         <h2 className="text-xl font-semibold mb-4">Mapa Śledzenia Dostaw</h2>
+        <button
+          onClick={() => setShowTrafficLayer((prev) => !prev)}
+          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+        >
+          {showTrafficLayer ? 'Ukryj natężenie ruchu' : 'Pokaż natężenie ruchu'}
+        </button>
         {isLoaded ? (
           <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={defaultCenter}>
             {couriers.map((courier) => (
@@ -180,6 +179,7 @@ const Dashboard = () => {
                 }}
               />
             )}
+            {showTrafficLayer && <TrafficLayer />}
           </GoogleMap>
         ) : (
           <div>Ładowanie mapy...</div>
