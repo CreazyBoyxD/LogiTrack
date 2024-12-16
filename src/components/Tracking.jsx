@@ -24,6 +24,7 @@ const Tracking = () => {
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
+    version: "3.58",
   });
 
   // Aktualizacja lokalizacji kuriera

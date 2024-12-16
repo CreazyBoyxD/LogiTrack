@@ -1,39 +1,106 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import { BASE_URL } from '../App.jsx';
 
 const Warehouse = () => {
+  const [products, setProducts] = useState([]);
+  const [newProduct, setNewProduct] = useState({ name: '', quantity: '', location: '' });
+
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const response = await axios.get(`${BASE_URL}/api/warehouse/products`);
+        setProducts(response.data);
+      } catch (error) {
+        console.error('Error fetching products:', error);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  const handleAddProduct = async () => {
+    try {
+      const response = await axios.post(`${BASE_URL}/api/warehouse/products`, newProduct);
+      setProducts([...products, { ...newProduct, id: response.data.productId }]);
+      setNewProduct({ name: '', quantity: '', location: '' });
+    } catch (error) {
+      console.error('Error adding product:', error);
+    }
+  };
+
+  const handleDeleteProduct = async (id) => {
+    try {
+      await axios.delete(`${BASE_URL}/api/warehouse/products/${id}`);
+      setProducts(products.filter((product) => product.id !== id));
+    } catch (error) {
+      console.error('Error deleting product:', error);
+    }
+  };
+
   return (
     <div className="p-8">
       <h2 className="text-3xl font-bold mb-6">Zarządzanie Magazynem</h2>
-      
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Panel Stanu Magazynu */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">Stan Magazynowy</h3>
-          <p>Liczba produktów: 250</p>
-          <p>Wolne miejsca magazynowe: 120</p>
-          <p>Produkty do uzupełnienia: 5</p>
-        </div>
 
-        {/* Panel Zarządzania Produktami */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">Zarządzanie Produktami</h3>
-          <button className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
-            Dodaj Produkt
-          </button>
-          <button className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 ml-4">
-            Usuń Produkt
-          </button>
-        </div>
+      <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <h3 className="text-xl font-semibold mb-4">Dodaj Produkt</h3>
+        <input
+          type="text"
+          placeholder="Nazwa produktu"
+          value={newProduct.name}
+          onChange={(e) => setNewProduct({ ...newProduct, name: e.target.value })}
+          className="border px-4 py-2 mr-2"
+        />
+        <input
+          type="number"
+          placeholder="Ilość"
+          value={newProduct.quantity}
+          onChange={(e) => setNewProduct({ ...newProduct, quantity: e.target.value })}
+          className="border px-4 py-2 mr-2"
+        />
+        <input
+          type="text"
+          placeholder="Lokalizacja"
+          value={newProduct.location}
+          onChange={(e) => setNewProduct({ ...newProduct, location: e.target.value })}
+          className="border px-4 py-2 mr-2"
+        />
+        <button onClick={handleAddProduct} className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">
+          Dodaj Produkt
+        </button>
+      </div>
 
-        {/* Panel Zamówień */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">Oczekujące Zamówienia</h3>
-          <p>Zamówienie #1245 - Produkt A (ilość: 50)</p>
-          <p>Zamówienie #1246 - Produkt B (ilość: 20)</p>
-          <button className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 mt-4">
-            Przejdź do Zamówień
-          </button>
-        </div>
+      <div className="bg-white rounded-lg shadow p-6">
+        <h3 className="text-xl font-semibold mb-4">Lista Produktów</h3>
+        <table className="min-w-full bg-white border-collapse border border-gray-200">
+          <thead>
+            <tr>
+              <th className="py-3 px-4 border">ID</th>
+              <th className="py-3 px-4 border">Nazwa</th>
+              <th className="py-3 px-4 border">Ilość</th>
+              <th className="py-3 px-4 border">Lokalizacja</th>
+              <th className="py-3 px-4 border">Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {products.map((product) => (
+              <tr key={product.id}>
+                <td className="py-3 px-4 border">{product.id}</td>
+                <td className="py-3 px-4 border">{product.name}</td>
+                <td className="py-3 px-4 border">{product.quantity}</td>
+                <td className="py-3 px-4 border">{product.location}</td>
+                <td className="py-3 px-4 border">
+                  <button
+                    onClick={() => handleDeleteProduct(product.id)}
+                    className="text-red-500 hover:underline"
+                  >
+                    Usuń
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
       </div>
     </div>
   );
