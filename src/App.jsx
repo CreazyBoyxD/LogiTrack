@@ -64,7 +64,7 @@ function App() {
             <Route
               path="/tracking"
               element={
-                isAuthenticated && checkRoleAccess(['admin', 'kurier', 'magazynier'])
+                isAuthenticated && checkRoleAccess(['admin', 'kurier'])
                   ? <Tracking />
                   : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
               }
@@ -80,7 +80,7 @@ function App() {
             <Route
               path="/suppliers"
               element={
-                isAuthenticated && checkRoleAccess(['admin', 'magazynier'])
+                isAuthenticated && checkRoleAccess(['admin'])
                   ? <Suppliers />
                   : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
               }

@@ -12,7 +12,7 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
   const accessibleLinks = {
     admin: ['/', '/warehouse', '/tracking', '/suppliers', '/reports'],
     kurier: ['/', '/tracking'],
-    magazynier: ['/', '/warehouse', '/tracking', '/suppliers'],
+    magazynier: ['/', '/warehouse'],
     gość: ['/']
   };
 
