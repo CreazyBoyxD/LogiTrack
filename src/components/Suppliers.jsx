@@ -110,8 +110,8 @@ const Suppliers = () => {
   };
 
   const formatDate = (dateString) => {
-    if (!dateString) return 'Nie rozpoczęta';
-    return format(new Date(dateString), 'dd.MM.yyyy HH:mm:ss'); // Format: DD.MM.RRRR HH:MM:SS
+    if (!dateString) return 'Nie zakończona';
+    return format(new Date(dateString), 'dd.MM.yyyy HH:mm:ss');
   };
 
   if (!isLoaded) return <div>Ładowanie mapy...</div>;
@@ -170,8 +170,8 @@ const Suppliers = () => {
                 <td className="py-3 px-4 border border-gray-200">{selectedOrder.address}</td>
               </tr>
               <tr className="hover:bg-gray-50">
-                <td className="py-3 px-4 border border-gray-200 font-semibold">Start Dostawy</td>
-                <td className="py-3 px-4 border border-gray-200">{formatDate(selectedOrder.start_time) || 'Nie rozpoczęta'}</td>
+                <td className="py-3 px-4 border border-gray-200 font-semibold">Czas Dostawy</td>
+                <td className="py-3 px-4 border border-gray-200">{formatDate(selectedOrder.delivery_time)}</td>
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-3 px-4 border border-gray-200 font-semibold">Szacowany Czas</td>
@@ -203,7 +203,7 @@ const Suppliers = () => {
               <tr>
                 <th className="py-3 px-4 border border-gray-200">ID</th>
                 <th className="py-3 px-4 border border-gray-200">Adres</th>
-                <th className="py-3 px-4 border border-gray-200">Start Dostawy</th>
+                <th className="py-3 px-4 border border-gray-200">Czas Dostawy</th>
                 <th className="py-3 px-4 border border-gray-200">Szacowany Czas</th>
                 <th className="py-3 px-4 border border-gray-200">Status</th>
                 <th className="py-3 px-4 border border-gray-200">Akcje</th>
@@ -215,7 +215,7 @@ const Suppliers = () => {
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4 border border-gray-200">{order.id}</td>
                     <td className="py-3 px-4 border border-gray-200">{order.address}</td>
-                    <td className="py-3 px-4 border border-gray-200">{formatDate(order.start_time) || 'Nie rozpoczęta'}</td>
+                    <td className="py-3 px-4 border border-gray-200">{formatDate(order.delivery_time) || 'Nie zakończona'}</td>
                     <td className="py-3 px-4 border border-gray-200">{order.estimated_time || 'N/A'}</td>
                     <td className="py-3 px-4 border border-gray-200">
                       {order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}
@@ -250,7 +250,7 @@ const Suppliers = () => {
             <tr>
               <th className="py-3 px-4 border border-gray-200">ID</th>
               <th className="py-3 px-4 border border-gray-200">Adres</th>
-              <th className="py-3 px-4 border border-gray-200">Start Dostawy</th>
+              <th className="py-3 px-4 border border-gray-200">Czas Dostawy</th>
               <th className="py-3 px-4 border border-gray-200">Szacowany Czas</th>
               <th className="py-3 px-4 border border-gray-200">Status</th>
               <th className="py-3 px-4 border border-gray-200">Kurier</th>
@@ -262,7 +262,7 @@ const Suppliers = () => {
               <tr key={order.id} className="hover:bg-gray-50">
                 <td className="py-3 px-4 border border-gray-200">{order.id}</td>
                 <td className="py-3 px-4 border border-gray-200">{order.address}</td>
-                <td className="py-3 px-4 border border-gray-200">{formatDate(order.start_time) || 'Nie rozpoczęta'}</td>
+                <td className="py-3 px-4 border border-gray-200">{formatDate(order.delivery_time) || 'Nie zakończona'}</td>
                 <td className="py-3 px-4 border border-gray-200">{order.estimated_time || 'N/A'}</td>
                 <td className="py-3 px-4 border border-gray-200">
                   {order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}
