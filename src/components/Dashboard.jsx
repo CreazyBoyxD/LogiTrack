@@ -28,6 +28,11 @@ const Dashboard = () => {
     averageDeliveryTime: 0,
     nextDelivery: null,
   });
+  const [warehouseStats, setWarehouseStats] = useState({
+    totalProducts: 0,
+    stockPercentage: 0,
+    productsToReplenish: 0,
+  });
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -39,8 +44,10 @@ const Dashboard = () => {
       try {
         const response1 = await axios.get(`${BASE_URL}/api/delivery-stats`);
         const response2 = await axios.get(`${BASE_URL}/api/order-stats`);
+        const response3 = await axios.get(`${BASE_URL}/api/warehouse-stats`);
         setDeliveryStats(response1.data);
         setOrderStats(response2.data);
+        setWarehouseStats(response3.data);
       } catch (error) {
         console.error('Błąd podczas pobierania statystyk:', error);
       }
@@ -118,7 +125,6 @@ const Dashboard = () => {
     }
   };  
 
-  // Funkcja do resetowania wybranego kuriera
   const handleCancelTracking = () => {
     setSelectedCourier(null);
     setDirections({});
@@ -131,9 +137,9 @@ const Dashboard = () => {
         {/* Sekcja Przeglądu Magazynu */}
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Przegląd Magazynu</h2>
-          <p>Liczba produktów: 120</p>
-          <p>Stan magazynowy: 75%</p>
-          <p>Produkty wymagające uzupełnienia: 5</p>
+          <p>Liczba produktów: {warehouseStats.totalProducts}</p>
+          <p>Stan magazynowy: {warehouseStats.stockPercentage}%</p>
+          <p>Produkty wymagające uzupełnienia: {warehouseStats.productsToReplenish}</p>
         </div>
         {/* Sekcja Aktywnych Zamówień */}
         <div className="bg-white rounded-lg shadow p-6">

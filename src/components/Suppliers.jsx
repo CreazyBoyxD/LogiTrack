@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GoogleMap, useJsApiLoader, Marker } from '@react-google-maps/api';
 import axios from 'axios';
+import { format } from 'date-fns';
 import { BASE_URL } from '../App';
 
 const mapContainerStyle = {
@@ -108,11 +109,16 @@ const Suppliers = () => {
     }
   };
 
+  const formatDate = (dateString) => {
+    if (!dateString) return 'Nie rozpoczęta';
+    return format(new Date(dateString), 'dd.MM.yyyy HH:mm:ss'); // Format: DD.MM.RRRR HH:MM:SS
+  };
+
   if (!isLoaded) return <div>Ładowanie mapy...</div>;
 
   return (
     <div className="p-8 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6 text-gray-700">Zarządzanie Dostawcami</h2>
+      <h2 className="text-3xl font-bold mb-6 text-gray-700">Zarządzanie Kurierami</h2>
 
       {/* Mapa kurierów i dostaw */}
       <div className="bg-white rounded-lg shadow p-6 mb-6">
@@ -165,7 +171,7 @@ const Suppliers = () => {
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-3 px-4 border border-gray-200 font-semibold">Start Dostawy</td>
-                <td className="py-3 px-4 border border-gray-200">{selectedOrder.start_time || 'Nie rozpoczęta'}</td>
+                <td className="py-3 px-4 border border-gray-200">{formatDate(selectedOrder.start_time) || 'Nie rozpoczęta'}</td>
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-3 px-4 border border-gray-200 font-semibold">Szacowany Czas</td>
@@ -209,7 +215,7 @@ const Suppliers = () => {
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4 border border-gray-200">{order.id}</td>
                     <td className="py-3 px-4 border border-gray-200">{order.address}</td>
-                    <td className="py-3 px-4 border border-gray-200">{order.start_time || 'Nie rozpoczęta'}</td>
+                    <td className="py-3 px-4 border border-gray-200">{formatDate(order.start_time) || 'Nie rozpoczęta'}</td>
                     <td className="py-3 px-4 border border-gray-200">{order.estimated_time || 'N/A'}</td>
                     <td className="py-3 px-4 border border-gray-200">
                       {order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}
@@ -256,7 +262,7 @@ const Suppliers = () => {
               <tr key={order.id} className="hover:bg-gray-50">
                 <td className="py-3 px-4 border border-gray-200">{order.id}</td>
                 <td className="py-3 px-4 border border-gray-200">{order.address}</td>
-                <td className="py-3 px-4 border border-gray-200">{order.start_time || 'Nie rozpoczęta'}</td>
+                <td className="py-3 px-4 border border-gray-200">{formatDate(order.start_time) || 'Nie rozpoczęta'}</td>
                 <td className="py-3 px-4 border border-gray-200">{order.estimated_time || 'N/A'}</td>
                 <td className="py-3 px-4 border border-gray-200">
                   {order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}

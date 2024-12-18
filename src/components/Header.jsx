@@ -10,9 +10,9 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
 
   // Define accessible links based on role
   const accessibleLinks = {
-    admin: ['/', '/warehouse', '/tracking', '/suppliers', '/reports'],
+    admin: ['/', '/warehouse', '/tracking', '/suppliers', '/reports', '/deliveries'],
     kurier: ['/', '/tracking'],
-    magazynier: ['/', '/warehouse'],
+    magazynier: ['/', '/warehouse', '/deliveries'],
     gość: ['/']
   };
 
@@ -43,7 +43,8 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
           {roleLinks.includes('/') && <Link to="/" className="hover:text-yellow-400 transition">Dashboard</Link>}
           {roleLinks.includes('/warehouse') && <Link to="/warehouse" className="hover:text-yellow-400 transition">Zarządzanie Magazynem</Link>}
           {roleLinks.includes('/tracking') && <Link to="/tracking" className="hover:text-yellow-400 transition">Śledzenie Dostaw</Link>}
-          {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:text-yellow-400 transition">Zarządzanie Dostawcami</Link>}
+          {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:text-yellow-400 transition">Zarządzanie Kurierami</Link>}
+          {roleLinks.includes('/deliveries') && <Link to="/deliveries" className="hover:text-yellow-400 transition">Zarządzanie Dostawami</Link>}
           {roleLinks.includes('/reports') && <Link to="/reports" className="hover:text-yellow-400 transition">Raporty</Link>}
           <Link to="/faq" className="hover:text-yellow-400 transition">FAQ</Link>
           <Link to="/terms-and-conditions" className="hover:text-yellow-400 transition">Warunki Korzystania</Link>
@@ -71,7 +72,8 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
             {roleLinks.includes('/') && <Link to="/" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Dashboard</Link>}
             {roleLinks.includes('/warehouse') && <Link to="/warehouse" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Magazynem</Link>}
             {roleLinks.includes('/tracking') && <Link to="/tracking" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Śledzenie Dostaw</Link>}
-            {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Dostawcami</Link>}
+            {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Kurierami</Link>}
+            {roleLinks.includes('/deliveries') && <Link to="/deliveries" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Dostawami</Link>}
             {roleLinks.includes('/reports') && <Link to="/reports" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Raporty</Link>}
             <Link to="/faq" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">FAQ</Link>
             <Link to="/terms-and-conditions" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Warunki Korzystania</Link>

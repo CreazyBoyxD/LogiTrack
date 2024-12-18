@@ -38,6 +38,27 @@ const Warehouse = () => {
     }
   };
 
+  const handleUpdateQuantity = async (id, change) => {
+    try {
+      const product = products.find((product) => product.id === id);
+      if (!product) return;
+  
+      const updatedQuantity = product.quantity + change;
+      if (updatedQuantity < 0) return alert('Ilość nie może być ujemna.');
+  
+      await axios.put(`${BASE_URL}/api/warehouse/products/${id}`, { quantity: updatedQuantity });
+  
+      setProducts((prevProducts) =>
+        prevProducts.map((p) =>
+          p.id === id ? { ...p, quantity: updatedQuantity } : p
+        )
+      );
+    } catch (error) {
+      console.error('Error updating product quantity:', error);
+      alert('Wystąpił błąd podczas aktualizacji ilości produktu.');
+    }
+  };  
+
   return (
     <div className="p-8">
       <h2 className="text-3xl font-bold mb-6">Zarządzanie Magazynem</h2>
@@ -87,7 +108,21 @@ const Warehouse = () => {
               <tr key={product.id}>
                 <td className="py-3 px-4 border">{product.id}</td>
                 <td className="py-3 px-4 border">{product.name}</td>
-                <td className="py-3 px-4 border">{product.quantity}</td>
+                <td className="py-3 px-4 border flex items-center space-x-2">
+                  <button
+                    onClick={() => handleUpdateQuantity(product.id, -1)}
+                    className="bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400"
+                  >
+                    -
+                  </button>
+                  <span>{product.quantity}</span>
+                  <button
+                    onClick={() => handleUpdateQuantity(product.id, 1)}
+                    className="bg-gray-300 text-gray-700 px-2 py-1 rounded hover:bg-gray-400"
+                  >
+                    +
+                  </button>
+                </td>
                 <td className="py-3 px-4 border">{product.location}</td>
                 <td className="py-3 px-4 border">
                   <button

@@ -8,6 +8,7 @@ import Login from './components/Login';
 import Suppliers from './components/Suppliers';
 import Warehouse from './components/Warehouse';
 import Tracking from './components/Tracking';
+import DeliveryManagement from './components/DeliveryManagement';
 import Reports from './components/Reports';
 import NotAuthorized from './components/NotAuthorized';
 import FAQ from './components/FAQ';
@@ -85,7 +86,15 @@ function App() {
                   : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
               }
             />
-
+            <Route
+              path="/deliveries"
+              element={
+                isAuthenticated && checkRoleAccess(['admin', 'magazynier'])
+                  ? <DeliveryManagement />
+                  : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
+              }
+            />
+            
             {/* Unauthorized page for restricted access */}
             <Route path="/not-authorized" element={<NotAuthorized />} />
             <Route path="/faq" element={<FAQ />} />
