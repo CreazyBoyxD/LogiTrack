@@ -211,15 +211,19 @@ const Tracking = () => {
       },
       async (result, status) => {
         if (status === 'OK' && result.routes.length > 0) {
-          const duration = result.routes[0].legs[0].duration.text;
+          const durationText = result.routes[0].legs[0].duration.text;
+          const durationInSeconds = parseDurationToSeconds(durationText); // Convert to seconds
+
+          // Update the frontend state with the readable duration
           setEstimatedTimes((prev) => ({
             ...prev,
-            [delivery.id]: duration,
+            [delivery.id]: durationText,
           }));
 
+          // Send the duration in seconds to the backend
           try {
             await axios.put(`${BASE_URL}/api/deliveries/${delivery.id}/estimated-time`, {
-              estimatedTime: duration,
+              estimatedTime: durationInSeconds, // Send duration in seconds
             });
           } catch (error) {
             console.error('Error updating estimated time:', error);
@@ -229,6 +233,23 @@ const Tracking = () => {
         }
       }
     );
+  };
+
+  // Helper function to convert duration text to seconds
+  const parseDurationToSeconds = (durationText) => {
+    const timeUnits = durationText.match(/(\d+)\s*(hour|minute|second|h|m|s)/gi);
+    let totalSeconds = 0;
+
+    timeUnits?.forEach((timeUnit) => {
+      const [, value, unit] = timeUnit.match(/(\d+)\s*(hour|minute|second|h|m|s)/i) || [];
+      const numericValue = parseInt(value, 10);
+
+      if (unit.startsWith('hour') || unit === 'h') totalSeconds += numericValue * 3600;
+      else if (unit.startsWith('minute') || unit === 'm') totalSeconds += numericValue * 60;
+      else if (unit.startsWith('second') || unit === 's') totalSeconds += numericValue;
+    });
+
+    return totalSeconds;
   };
 
   // Anulowanie trasy
@@ -243,6 +264,47 @@ const Tracking = () => {
     setMapCenter(origin);
   };
 
+  const optimizeDeliveryOrder = async () => {
+    if (!deliveries || deliveries.length === 0) {
+      alert('Brak przypisanych dostaw do optymalizacji.');
+      return;
+    }
+  
+    try {
+      const waypoints = deliveries.map((delivery) => ({
+        location: `${delivery.latitude},${delivery.longitude}`,
+        stopover: true,
+      }));
+  
+      new window.google.maps.DirectionsService().route(
+        {
+          origin: `${origin.lat},${origin.lng}`, // Lokalizacja kuriera
+          destination: `${origin.lat},${origin.lng}`, // Powrót do punktu początkowego (opcjonalne)
+          waypoints: waypoints,
+          optimizeWaypoints: true, // Optymalizacja kolejności
+          travelMode: 'DRIVING',
+        },
+        (result, status) => {
+          if (status === 'OK') {
+            // Optymalizowana kolejność
+            const optimizedOrder = result.routes[0].waypoint_order;
+  
+            // Ustawienie nowej kolejności w liście dostaw
+            const sortedDeliveries = optimizedOrder.map((index) => deliveries[index]);
+            setDeliveries(sortedDeliveries);
+            alert('Dostawy zostały zoptymalizowane.');
+          } else {
+            console.error('Error optimizing deliveries:', status);
+            alert('Nie udało się zoptymalizować dostaw.');
+          }
+        }
+      );
+    } catch (error) {
+      console.error('Error during delivery optimization:', error);
+      alert('Wystąpił błąd podczas optymalizacji dostaw.');
+    }
+  };  
+
   if (!isLoaded) return <div>Ładowanie mapy...</div>;
 
   return (
@@ -255,9 +317,9 @@ const Tracking = () => {
           <h3 className="text-xl font-semibold mb-4">Twoje dostawy</h3>
           {deliveries.length > 0 ? (
             <ul>
-              {deliveries.map((delivery) => (
+              {deliveries.map((delivery, index) => (
                 <li key={delivery.id} className="mb-4">
-                  <p><strong>Adres:</strong> {delivery.address}</p>
+                  <p><strong>{index + 1}. Adres:</strong> {delivery.address}</p>
                   <p><strong>Szacowany czas:</strong> {estimatedTimes[delivery.id] || 'N/A'}</p>
                   <div className="flex space-x-2">
                     <button
@@ -276,6 +338,16 @@ const Tracking = () => {
                     >
                       Jedź
                     </button>
+                    <button
+                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                      onClick={() => {
+                        handleCancelNavigation();
+                        markDeliveryAsCompleted(delivery.id);
+                        fetchDeliveryDuration(delivery.id);
+                      }}
+                    >
+                      Oznacz jako wykonane
+                    </button>
                   </div>
                 </li>
               ))}
@@ -288,6 +360,12 @@ const Tracking = () => {
         {/* Mapa */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-xl font-semibold mb-4">Mapa</h3>
+          <button
+            onClick={optimizeDeliveryOrder}
+            className="mb-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+          >
+            Optymalizuj kolejność dostaw
+          </button>
           <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={mapCenter}>
             {/* Marker dla lokalizacji kuriera */}
             <Marker
@@ -307,10 +385,7 @@ const Tracking = () => {
                   lng: parseFloat(delivery.longitude),
                 }}
                 icon={{
-                  url:
-                    selectedDelivery?.id === delivery.id
-                      ? 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-                      : 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                  url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
                 }}
                 onClick={() => setSelectedDelivery(delivery)}
               />
@@ -321,7 +396,7 @@ const Tracking = () => {
               <DirectionsRenderer
                 options={{
                   directions: directionsResponse,
-                  suppressMarkers: false, // Możesz ustawić na true, jeśli chcesz renderować markery osobno
+                  suppressMarkers: false, // Można ustawić na true, jeśli chce renderować markery osobno
                 }}
               />
             )}

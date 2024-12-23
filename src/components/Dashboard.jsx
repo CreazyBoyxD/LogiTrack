@@ -125,6 +125,20 @@ const Dashboard = () => {
     }
   };  
 
+  const formatDuration = (seconds) => {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+  
+    if (hours > 0) {
+      return `${hours} hour${hours > 1 ? 's' : ''} ${minutes}`;
+    } else if (minutes > 0) {
+      return `${minutes}`;
+    } else {
+      return `${secs}`;
+    }
+  };  
+
   const handleCancelTracking = () => {
     setSelectedCourier(null);
     setDirections({});
@@ -152,7 +166,7 @@ const Dashboard = () => {
         <div className="bg-white rounded-lg shadow p-6">
           <h2 className="text-xl font-semibold mb-4">Śledzenie Dostaw</h2>
           <p>Pojazdy w trasie: {deliveryStats.vehiclesInTransit}</p>
-          <p>Średni czas dostawy: {deliveryStats.averageDeliveryTime} min</p>
+          <p>Średni czas dostawy: {formatDuration(deliveryStats.averageDeliveryTime)} min</p>
           <p>Najbliższa dostawa: {deliveryStats.nextDelivery ? deliveryStats.nextDelivery.slice(0, 5) : 'Brak'}</p>
         </div>
       </div>

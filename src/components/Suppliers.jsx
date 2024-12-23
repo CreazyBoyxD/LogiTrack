@@ -114,6 +114,39 @@ const Suppliers = () => {
     return format(new Date(dateString), 'dd.MM.yyyy HH:mm:ss');
   };
 
+  const autoAssignOrder = async (orderId, destination) => {
+    try {
+      const response = await axios.post(`${BASE_URL}/api/orders/auto-assign`, { orderId, destination });
+      
+      // Zaktualizuj stan zamówień
+      setOrders((prevOrders) =>
+        prevOrders.map((order) =>
+          order.id === orderId ? { ...order, courier_id: response.data.courier.courier_id } : order
+        )
+      );
+    } catch (error) {
+      console.error('Error auto-assigning order:', error);
+    }
+  };  
+
+  const formatDuration = (seconds) => {
+    if (!seconds || isNaN(seconds)) {
+      return 'N/A';
+    }
+  
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = seconds % 60;
+  
+    if (hours > 0) {
+      return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} min`;
+    } else if (minutes > 0) {
+      return `${minutes} min`;
+    } else {
+      return `${secs} sec`;
+    }
+  };
+  
   if (!isLoaded) return <div>Ładowanie mapy...</div>;
 
   return (
@@ -175,7 +208,7 @@ const Suppliers = () => {
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-3 px-4 border border-gray-200 font-semibold">Szacowany Czas</td>
-                <td className="py-3 px-4 border border-gray-200">{selectedOrder.estimated_time || 'N/A'}</td>
+                <td className="py-3 px-4 border border-gray-200">{formatDuration(selectedOrder.estimated_time) || 'N/A'}</td>
               </tr>
               <tr className="hover:bg-gray-50">
                 <td className="py-3 px-4 border border-gray-200 font-semibold">Status</td>
@@ -216,7 +249,7 @@ const Suppliers = () => {
                     <td className="py-3 px-4 border border-gray-200">{order.id}</td>
                     <td className="py-3 px-4 border border-gray-200">{order.address}</td>
                     <td className="py-3 px-4 border border-gray-200">{formatDate(order.delivery_time) || 'Nie zakończona'}</td>
-                    <td className="py-3 px-4 border border-gray-200">{order.estimated_time || 'N/A'}</td>
+                    <td className="py-3 px-4 border border-gray-200">{formatDuration(order.estimated_time) || 'N/A'}</td>
                     <td className="py-3 px-4 border border-gray-200">
                       {order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}
                     </td>
@@ -263,7 +296,7 @@ const Suppliers = () => {
                 <td className="py-3 px-4 border border-gray-200">{order.id}</td>
                 <td className="py-3 px-4 border border-gray-200">{order.address}</td>
                 <td className="py-3 px-4 border border-gray-200">{formatDate(order.delivery_time) || 'Nie zakończona'}</td>
-                <td className="py-3 px-4 border border-gray-200">{order.estimated_time || 'N/A'}</td>
+                <td className="py-3 px-4 border border-gray-200">{formatDuration(order.estimated_time) || 'N/A'}</td>
                 <td className="py-3 px-4 border border-gray-200">
                   {order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}
                 </td>
@@ -277,7 +310,8 @@ const Suppliers = () => {
                       Usuń z kuriera
                     </button>
                   ) : (
-                    <div>
+                    <div className="flex items-center space-x-2">
+                      {/* Dropdown list do ręcznego wyboru kuriera */}
                       <select
                         onChange={(e) => handleAssignOrder(order.id, e.target.value)}
                         className="border rounded px-2 py-1"
@@ -289,6 +323,16 @@ const Suppliers = () => {
                           </option>
                         ))}
                       </select>
+
+                      {/* Przycisk do automatycznego przypisania */}
+                      <button
+                        onClick={() =>
+                          autoAssignOrder(order.id, { lat: order.latitude, lng: order.longitude })
+                        }
+                        className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      >
+                        Wybierz automatycznie
+                      </button>
                     </div>
                   )}
                 </td>
