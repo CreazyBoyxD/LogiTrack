@@ -21,6 +21,7 @@ const Tracking = () => {
   const [directionsResponse, setDirectionsResponse] = useState(null);
   const [estimatedTimes, setEstimatedTimes] = useState({});
   const [isNavigating, setIsNavigating] = useState(false);
+  const [isActive, setIsActive] = useState(false);
 
   const { isLoaded } = useJsApiLoader({
     googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
@@ -46,6 +47,43 @@ const Tracking = () => {
 
     const interval = setInterval(updatePosition, 15000); // Aktualizacja co 15 sekund
     return () => clearInterval(interval); // Usuń interwał przy demontażu komponentu
+  }, []);
+
+  // Pobierz status aktywności kuriera
+  const fetchCourierStatus = async () => {
+    const courierId = localStorage.getItem('courierId');
+    if (!courierId) {
+      console.error('Brak courierId w localStorage');
+      return;
+    }
+
+    try {
+      const response = await axios.get(`${BASE_URL}/api/couriers/${courierId}`);
+      setIsActive(response.data.active); // Ustaw status aktywności
+    } catch (error) {
+      console.error('Błąd podczas pobierania statusu kuriera:', error);
+    }
+  };
+
+  const toggleCourierActive = async () => {
+    const courierId = localStorage.getItem('courierId');
+    if (!courierId) {
+      console.error('Brak courierId w localStorage');
+      return;
+    }
+
+    try {
+      await axios.put(`${BASE_URL}/api/couriers/${courierId}/active`, {
+        active: !isActive,
+      });
+      setIsActive(!isActive); // Aktualizuj lokalny stan
+    } catch (error) {
+      console.error('Błąd podczas zmiany statusu aktywności kuriera:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCourierStatus();
   }, []);
 
   const startDelivery = async (deliveryId) => {
@@ -308,28 +346,53 @@ const Tracking = () => {
   if (!isLoaded) return <div>Ładowanie mapy...</div>;
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6">Śledzenie Dostaw</h2>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div className="p-8 bg-gray-100 min-h-screen space-y-8">
+      <h2 className="text-4xl font-bold text-center text-blue-700">Śledzenie Dostaw</h2>
+  
+      {/* Status aktywności */}
+      <div className="bg-white rounded-lg shadow p-6 space-y-4">
+        <h3 className="text-2xl font-semibold text-gray-800">Twój Status Aktywności</h3>
+        <p className="text-lg">
+          <strong>Status:</strong>{' '}
+          <span className={isActive ? 'text-green-600' : 'text-red-600'}>
+            {isActive ? 'Aktywny' : 'Nieaktywny'}
+          </span>
+        </p>
+        <button
+          onClick={toggleCourierActive}
+          className={`w-full py-3 rounded-lg font-semibold shadow transition-colors ${
+            isActive
+              ? 'bg-red-500 text-white hover:bg-red-600'
+              : 'bg-green-500 text-white hover:bg-green-600'
+          }`}
+        >
+          {isActive ? 'Ustaw jako Nieaktywny' : 'Ustaw jako Aktywny'}
+        </button>
+      </div>
+  
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
         {/* Lista dostaw */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">Twoje dostawy</h3>
+        <div className="bg-white rounded-lg shadow p-6 space-y-6">
+          <h3 className="text-2xl font-semibold text-gray-800">Twoje Dostawy</h3>
           {deliveries.length > 0 ? (
-            <ul>
+            <ul className="space-y-4">
               {deliveries.map((delivery, index) => (
-                <li key={delivery.id} className="mb-4">
-                  <p><strong>{index + 1}. Adres:</strong> {delivery.address}</p>
-                  <p><strong>Szacowany czas:</strong> {estimatedTimes[delivery.id] || 'N/A'}</p>
-                  <div className="flex space-x-2">
+                <li key={delivery.id} className="p-4 border rounded-lg shadow hover:bg-gray-50">
+                  <p className="text-lg">
+                    <strong>{index + 1}. Adres:</strong> {delivery.address}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    <strong>Szacowany czas:</strong> {estimatedTimes[delivery.id] || 'N/A'}
+                  </p>
+                  <div className="flex justify-between space-x-2 mt-4">
                     <button
-                      className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
+                      className="bg-yellow-500 text-white px-4 py-2 rounded shadow hover:bg-yellow-600"
                       onClick={() => calculateEstimatedTime(delivery)}
                     >
                       Oblicz czas
                     </button>
                     <button
-                      className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                      className="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600"
                       onClick={() => {
                         handleNavigate(delivery);
                         startDelivery(delivery.id);
@@ -339,7 +402,7 @@ const Tracking = () => {
                       Jedź
                     </button>
                     <button
-                      className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+                      className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600"
                       onClick={() => {
                         handleCancelNavigation();
                         markDeliveryAsCompleted(delivery.id);
@@ -353,107 +416,115 @@ const Tracking = () => {
               ))}
             </ul>
           ) : (
-            <p>Brak dostaw do zrealizowania.</p>
+            <p className="text-gray-500">Brak dostaw do zrealizowania.</p>
           )}
         </div>
-
+  
         {/* Mapa */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-xl font-semibold mb-4">Mapa</h3>
+        <div className="bg-white rounded-lg shadow p-6 space-y-6">
+          <h3 className="text-2xl font-semibold text-gray-800">Mapa</h3>
           <button
             onClick={optimizeDeliveryOrder}
-            className="mb-4 bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
+            className="w-full py-3 bg-green-500 text-white rounded-lg font-semibold shadow hover:bg-green-600 transition-colors"
           >
             Optymalizuj kolejność dostaw
           </button>
-          <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={mapCenter}>
-            {/* Marker dla lokalizacji kuriera */}
-            <Marker
-              position={origin}
-              icon={{
-                url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
-              }}
-              label="Ty"
-            />
-
-            {/* Markery dla dostaw */}
-            {deliveries.map((delivery) => (
+          <div className="rounded overflow-hidden shadow">
+            <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={mapCenter}>
+              {/* Marker dla lokalizacji kuriera */}
               <Marker
-                key={delivery.id}
-                position={{
-                  lat: parseFloat(delivery.latitude),
-                  lng: parseFloat(delivery.longitude),
-                }}
+                position={origin}
                 icon={{
-                  url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                  url: 'http://maps.google.com/mapfiles/ms/icons/green-dot.png',
                 }}
-                onClick={() => setSelectedDelivery(delivery)}
+                label="Ty"
               />
-            ))}
-
-            {/* DirectionsRenderer dla trasy */}
-            {directionsResponse && (
-              <DirectionsRenderer
-                options={{
-                  directions: directionsResponse,
-                  suppressMarkers: false, // Można ustawić na true, jeśli chce renderować markery osobno
-                }}
-              />
-            )}
-          </GoogleMap>
+  
+              {/* Markery dla dostaw */}
+              {deliveries.map((delivery) => (
+                <Marker
+                  key={delivery.id}
+                  position={{
+                    lat: parseFloat(delivery.latitude),
+                    lng: parseFloat(delivery.longitude),
+                  }}
+                  icon={{
+                    url: 'http://maps.google.com/mapfiles/ms/icons/red-dot.png',
+                  }}
+                  onClick={() => setSelectedDelivery(delivery)}
+                />
+              ))}
+  
+              {/* DirectionsRenderer dla trasy */}
+              {directionsResponse && (
+                <DirectionsRenderer
+                  options={{
+                    directions: directionsResponse,
+                    suppressMarkers: false,
+                  }}
+                />
+              )}
+            </GoogleMap>
+          </div>
           <button
-            className="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+            className="w-full py-3 bg-blue-500 text-white rounded-lg font-semibold shadow hover:bg-blue-600 transition-colors"
             onClick={handleCenterMap}
           >
             Wyśrodkuj mapę
           </button>
-
-          {/* Szczegóły dostawy */}
-          {selectedDelivery && (
-            <div className="mt-4 p-4 bg-gray-100 rounded-lg shadow">
-              <h4 className="text-lg font-semibold">Szczegóły Dostawy</h4>
-              <p><strong>Adres:</strong> {selectedDelivery.address}</p>
-              <p><strong>Szacowany czas:</strong> {estimatedTimes[selectedDelivery.id] || 'N/A'}</p>
-              <div className="flex space-x-2">
-                {!isNavigating ? (
-                  <button
-                    className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
-                    onClick={() => {
-                      handleNavigate(selectedDelivery);
-                      startDelivery(selectedDelivery.id);
-                      setIsNavigating(true);
-                    }}
-                  >
-                    Rozpocznij trasę
-                  </button>
-                ) : (
-                  <button
-                    className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-                    onClick={() => {
-                      handleCancelNavigation();
-                      setIsNavigating(false);
-                    }}
-                  >
-                    Anuluj trasę
-                  </button>
-                )}
-                <button
-                  className="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600"
-                  onClick={() => {
-                    handleCancelNavigation();
-                    markDeliveryAsCompleted(selectedDelivery.id);
-                    fetchDeliveryDuration(selectedDelivery.id);
-                  }}
-                >
-                  Oznacz jako wykonane
-                </button>
-              </div>
-            </div>
-          )}
         </div>
       </div>
+  
+      {/* Szczegóły dostawy */}
+      {selectedDelivery && (
+        <div className="bg-white rounded-lg shadow p-6 space-y-4">
+          <h3 className="text-xl font-semibold text-gray-800">Szczegóły Dostawy</h3>
+          <p>
+            <strong>Adres:</strong> {selectedDelivery.address}
+          </p>
+          <p>
+            <strong>Szacowany czas:</strong>{' '}
+            {estimatedTimes[selectedDelivery.id] || 'N/A'}
+          </p>
+          <div className="flex justify-between space-x-2">
+            {!isNavigating ? (
+              <button
+                className="bg-blue-500 text-white px-4 py-2 rounded shadow hover:bg-blue-600"
+                onClick={() => {
+                  handleNavigate(selectedDelivery);
+                  startDelivery(selectedDelivery.id);
+                  setIsNavigating(true);
+                }}
+              >
+                Rozpocznij trasę
+              </button>
+            ) : (
+              <button
+                className="bg-red-500 text-white px-4 py-2 rounded shadow hover:bg-red-600"
+                onClick={() => {
+                  handleCancelNavigation();
+                  setIsNavigating(false);
+                }}
+              >
+                Anuluj trasę
+              </button>
+            )}
+            <button
+              className="bg-green-500 text-white px-4 py-2 rounded shadow hover:bg-green-600"
+              onClick={() => {
+                handleCancelNavigation();
+                markDeliveryAsCompleted(selectedDelivery.id);
+                fetchDeliveryDuration(selectedDelivery.id);
+              }}
+            >
+              Oznacz jako wykonane
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
+  
 };
 
 export default Tracking;

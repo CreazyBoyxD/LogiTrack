@@ -215,6 +215,10 @@ const Suppliers = () => {
                 <td className="py-3 px-4 font-semibold border border-gray-200">Szacowany Czas</td>
                 <td className="py-3 px-4 border border-gray-200">{formatDuration(selectedOrder.estimated_time)}</td>
               </tr>
+              <tr>
+                <td className="py-3 px-4 border border-gray-200 font-semibold">Kurier</td>
+                <td className="py-3 px-4 border border-gray-200">{selectedOrder.courier_id ? `Kurier ${selectedOrder.courier_id}` : 'Nie przypisane'}</td>
+              </tr>
             </tbody>
           </table>
         </div>
