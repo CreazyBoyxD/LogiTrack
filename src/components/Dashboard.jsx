@@ -145,89 +145,117 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h1 className="text-3xl font-bold mb-8">Dashboard</h1>
+    <div className="p-6 bg-gray-50 min-h-screen space-y-8">
+      <h1 className="text-4xl font-bold text-center text-black-700">Dashboard</h1>
+  
+      {/* Statystyki */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {/* Sekcja Przeglądu Magazynu */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Przegląd Magazynu</h2>
-          <p>Liczba produktów: {warehouseStats.totalProducts}</p>
-          <p>Stan magazynowy: {warehouseStats.stockPercentage}%</p>
-          <p>Produkty wymagające uzupełnienia: {warehouseStats.productsToReplenish}</p>
+        {/* Przegląd Magazynu */}
+        <div className="bg-white rounded-lg shadow-lg p-6 space-y-3">
+          <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Przegląd Magazynu</h2>
+          <p className="text-sm text-gray-600">
+            <strong>Liczba produktów:</strong> {warehouseStats.totalProducts}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Stan magazynowy:</strong> {warehouseStats.stockPercentage}%
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Produkty wymagające uzupełnienia:</strong> {warehouseStats.productsToReplenish}
+          </p>
         </div>
-        {/* Sekcja Aktywnych Zamówień */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Aktywne Zamówienia</h2>
-          <p>Zamówienia w trakcie realizacji: {orderStats.in_progress}</p>
-          <p>Zamówienia dostarczone dzisiaj: {orderStats.delivered_today}</p>
-          <p>Opóźnione zamówienia: {orderStats.delayed}</p>
+  
+        {/* Aktywne Zamówienia */}
+        <div className="bg-white rounded-lg shadow-lg p-6 space-y-3">
+          <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Aktywne Zamówienia</h2>
+          <p className="text-sm text-gray-600">
+            <strong>W trakcie realizacji:</strong> {orderStats.in_progress}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Dostarczone dzisiaj:</strong> {orderStats.delivered_today}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Opóźnione:</strong> {orderStats.delayed}
+          </p>
         </div>
-        {/* Sekcja Śledzenia Dostaw */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h2 className="text-xl font-semibold mb-4">Śledzenie Dostaw</h2>
-          <p>Pojazdy w trasie: {deliveryStats.vehiclesInTransit}</p>
-          <p>Średni czas dostawy: {formatDuration(deliveryStats.averageDeliveryTime)} min</p>
-          <p>Najbliższa dostawa: {deliveryStats.nextDelivery ? deliveryStats.nextDelivery.slice(0, 5) : 'Brak'}</p>
+  
+        {/* Śledzenie Dostaw */}
+        <div className="bg-white rounded-lg shadow-lg p-6 space-y-3">
+          <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Śledzenie Dostaw</h2>
+          <p className="text-sm text-gray-600">
+            <strong>Pojazdy w trasie:</strong> {deliveryStats.vehiclesInTransit}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Średni czas dostawy:</strong> {formatDuration(deliveryStats.averageDeliveryTime)} min
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Najbliższa dostawa:</strong>{' '}
+            {deliveryStats.nextDelivery ? deliveryStats.nextDelivery.slice(0, 5) : 'Brak'}
+          </p>
         </div>
       </div>
-
-      <div className="bg-white rounded-lg shadow p-6 mt-8">
-        <h2 className="text-xl font-semibold mb-4">Mapa Śledzenia Dostaw</h2>
+  
+      {/* Mapa Śledzenia Dostaw */}
+      <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+        <h2 className="text-lg font-semibold text-gray-800 border-b pb-2">Mapa Śledzenia Dostaw</h2>
+        {isLoaded ? (
+          <div className="rounded overflow-hidden shadow-lg">
+            <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={defaultCenter}>
+              {couriers.map((courier) => (
+                <Marker
+                  key={courier.courier_id}
+                  position={{
+                    lat: parseFloat(courier.latitude),
+                    lng: parseFloat(courier.longitude),
+                  }}
+                  label={`${courier.courier_id}`}
+                  onClick={() => handleCourierClick(courier)}
+                />
+              ))}
+              {selectedCourier && directions[selectedCourier.courier_id] && (
+                <DirectionsRenderer
+                  options={{
+                    directions: directions[selectedCourier.courier_id],
+                  }}
+                />
+              )}
+              {showTrafficLayer && <TrafficLayer />}
+            </GoogleMap>
+          </div>
+        ) : (
+          <div className="text-center text-gray-500">Ładowanie mapy...</div>
+        )}
         <button
           onClick={() => setShowTrafficLayer((prev) => !prev)}
-          className="mb-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+          className="w-full py-3 bg-blue-500 text-white rounded-lg font-medium shadow hover:bg-blue-600 transition-colors"
         >
           {showTrafficLayer ? 'Ukryj natężenie ruchu' : 'Pokaż natężenie ruchu'}
         </button>
-        {isLoaded ? (
-          <GoogleMap mapContainerStyle={mapContainerStyle} zoom={12} center={defaultCenter}>
-            {couriers.map((courier) => (
-              <Marker
-                key={courier.courier_id}
-                position={{
-                  lat: parseFloat(courier.latitude),
-                  lng: parseFloat(courier.longitude),
-                }}
-                label={`${courier.courier_id}`}
-                onClick={() => handleCourierClick(courier)}
-              />
-            ))}
-            {selectedCourier && directions[selectedCourier.courier_id] && (
-              <DirectionsRenderer
-                options={{
-                  directions: directions[selectedCourier.courier_id],
-                }}
-              />
-            )}
-            {showTrafficLayer && <TrafficLayer />}
-          </GoogleMap>
-        ) : (
-          <div>Ładowanie mapy...</div>
-        )}
-        {selectedCourier && (
-          <div className="mt-4 p-4 bg-gray-100 border border-gray-300 rounded">
-            <h3 className="text-xl font-semibold mb-4 text-gray-700">Szczegóły Kuriera</h3>
-            <p>
-              <strong>ID Kuriera:</strong> {selectedCourier.courier_id}
-            </p>
-            <p>
-              <strong>Status:</strong>{' '}
-              {selectedCourier.destination_address !== 'Brak celu' ? 'W trasie' : 'Nie ma celu'}
-            </p>
-            <p>
-              <strong>Miejsce Docelowe:</strong> {selectedCourier.destination_address}
-            </p>
-            <button
-              onClick={handleCancelTracking}
-              className="mt-2 px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600"
-            >
-              Anuluj śledzenie
-            </button>
-          </div>
-        )}
       </div>
+  
+      {/* Szczegóły Kuriera */}
+      {selectedCourier && (
+        <div className="bg-white rounded-lg shadow-lg p-6 space-y-4">
+          <h3 className="text-lg font-semibold text-gray-800">Szczegóły Kuriera</h3>
+          <p className="text-sm text-gray-600">
+            <strong>ID Kuriera:</strong> {selectedCourier.courier_id}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Status:</strong>{' '}
+            {selectedCourier.destination_address !== 'Brak celu' ? 'W trasie' : 'Nie ma celu'}
+          </p>
+          <p className="text-sm text-gray-600">
+            <strong>Miejsce Docelowe:</strong> {selectedCourier.destination_address}
+          </p>
+          <button
+            onClick={handleCancelTracking}
+            className="mt-2 w-full py-3 bg-red-500 text-white rounded-lg font-medium shadow hover:bg-red-600 transition-colors"
+          >
+            Anuluj śledzenie
+          </button>
+        </div>
+      )}
     </div>
-  );
+  );  
 };
 
 export default Dashboard;
