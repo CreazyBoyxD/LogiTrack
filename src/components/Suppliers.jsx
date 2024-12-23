@@ -7,6 +7,7 @@ import { BASE_URL } from '../App';
 const mapContainerStyle = {
   width: '100%',
   height: '400px',
+  borderRadius: '8px',
 };
 
 const defaultCenter = {
@@ -68,7 +69,7 @@ const Suppliers = () => {
 
   const handleAssignOrder = async (orderId, courierId) => {
     if (!courierId) return;
-  
+
     try {
       await axios.post(`${BASE_URL}/api/orders/assign`, {
         courier_id: courierId,
@@ -84,26 +85,24 @@ const Suppliers = () => {
     } catch (error) {
       console.error('Error assigning order:', error);
     }
-  };  
+  };
 
   const handleRemoveOrder = async (orderId) => {
-    if (!selectedCourier) return;
-
     try {
-      await axios.post(`${BASE_URL}/api/orders/remove`, {
-        order_id: orderId,
-      });
-
-      setSelectedCourier((prev) => ({
-        ...prev,
-        orders: prev.orders.filter((order) => order.id !== orderId),
-      }));
+      await axios.post(`${BASE_URL}/api/orders/remove`, { order_id: orderId });
 
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
           order.id === orderId ? { ...order, courier_id: null } : order
         )
       );
+
+      if (selectedCourier) {
+        setSelectedCourier((prev) => ({
+          ...prev,
+          orders: prev.orders.filter((order) => order.id !== orderId),
+        }));
+      }
     } catch (error) {
       console.error('Error removing order:', error);
     }
@@ -118,6 +117,9 @@ const Suppliers = () => {
     try {
       const response = await axios.post(`${BASE_URL}/api/orders/auto-assign`, { orderId, destination });
       
+      
+      // Zaktualizuj stan zamówień
+
       // Zaktualizuj stan zamówień
       setOrders((prevOrders) =>
         prevOrders.map((order) =>
@@ -127,35 +129,34 @@ const Suppliers = () => {
     } catch (error) {
       console.error('Error auto-assigning order:', error);
     }
-  };  
+  };
 
   const formatDuration = (seconds) => {
     if (!seconds || isNaN(seconds)) {
       return 'N/A';
     }
-  
+
     const hours = Math.floor(seconds / 3600);
     const minutes = Math.floor((seconds % 3600) / 60);
     const secs = seconds % 60;
-  
+
     if (hours > 0) {
-      return `${hours} hour${hours > 1 ? 's' : ''} ${minutes} min`;
+      return `${hours} godz ${minutes} min`;
     } else if (minutes > 0) {
       return `${minutes} min`;
     } else {
-      return `${secs} sec`;
+      return `${secs} sek`;
     }
   };
-  
-  if (!isLoaded) return <div>Ładowanie mapy...</div>;
+
+  if (!isLoaded) return <div className="text-center text-gray-600">Ładowanie mapy...</div>;
 
   return (
-    <div className="p-8 bg-gray-100 min-h-screen">
-      <h2 className="text-3xl font-bold mb-6 text-gray-700">Zarządzanie Kurierami</h2>
+    <div className="p-6 bg-gray-100 min-h-screen space-y-8">
+      <h2 className="text-4xl font-bold text-center mb-6 text-gray-800">Zarządzanie Kurierami</h2>
 
-      {/* Mapa kurierów i dostaw */}
-      <div className="bg-white rounded-lg shadow p-6 mb-6">
-        <h3 className="text-xl font-semibold mb-4 text-gray-600">Mapa Kurierów i Dostaw</h3>
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-2xl font-semibold mb-4 text-gray-700">Mapa Kurierów i Dostaw</h3>
         <GoogleMap mapContainerStyle={mapContainerStyle} zoom={13} center={defaultCenter}>
           {/* Markery dla kurierów */}
           {couriers.map((courier) => (
@@ -165,7 +166,11 @@ const Suppliers = () => {
                 lat: parseFloat(courier.latitude),
                 lng: parseFloat(courier.longitude),
               }}
-              label={`${courier.courier_id}`}
+              label={{
+                text: `${courier.courier_id}`,
+                color: 'black',
+                fontSize: '12px',
+              }}
               onClick={() => handleMarkerClick(courier)}
             />
           ))}
@@ -190,37 +195,25 @@ const Suppliers = () => {
 
       {/* Szczegóły wybranej dostawy */}
       {selectedOrder && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4 text-gray-600">Szczegóły Dostawy</h3>
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h3 className="text-2xl font-semibold mb-4 text-gray-700">Szczegóły Dostawy</h3>
           <table className="min-w-full bg-white border-collapse border border-gray-200">
             <tbody>
-              <tr className="hover:bg-gray-50">
-                <td className="py-3 px-4 border border-gray-200 font-semibold">ID</td>
+              <tr>
+                <td className="py-3 px-4 font-semibold border border-gray-200">ID</td>
                 <td className="py-3 px-4 border border-gray-200">{selectedOrder.id}</td>
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-3 px-4 border border-gray-200 font-semibold">Adres</td>
+              <tr>
+                <td className="py-3 px-4 font-semibold border border-gray-200">Adres</td>
                 <td className="py-3 px-4 border border-gray-200">{selectedOrder.address}</td>
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-3 px-4 border border-gray-200 font-semibold">Czas Dostawy</td>
+              <tr>
+                <td className="py-3 px-4 font-semibold border border-gray-200">Czas Dostawy</td>
                 <td className="py-3 px-4 border border-gray-200">{formatDate(selectedOrder.delivery_time)}</td>
               </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-3 px-4 border border-gray-200 font-semibold">Szacowany Czas</td>
-                <td className="py-3 px-4 border border-gray-200">{formatDuration(selectedOrder.estimated_time) || 'N/A'}</td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-3 px-4 border border-gray-200 font-semibold">Status</td>
-                <td className="py-3 px-4 border border-gray-200">
-                  {selectedOrder.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}
-                </td>
-              </tr>
-              <tr className="hover:bg-gray-50">
-                <td className="py-3 px-4 border border-gray-200 font-semibold">Kurier</td>
-                <td className="py-3 px-4 border border-gray-200">
-                  {selectedOrder.courier_id ? `Kurier ${selectedOrder.courier_id}` : 'Nie przypisane'}
-                </td>
+              <tr>
+                <td className="py-3 px-4 font-semibold border border-gray-200">Szacowany Czas</td>
+                <td className="py-3 px-4 border border-gray-200">{formatDuration(selectedOrder.estimated_time)}</td>
               </tr>
             </tbody>
           </table>
@@ -229,8 +222,8 @@ const Suppliers = () => {
 
       {/* Szczegóły wybranego kuriera */}
       {selectedCourier && (
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h3 className="text-xl font-semibold mb-4 text-gray-600">Kurier: {selectedCourier.courier_id}</h3>
+        <div className="bg-white rounded-lg shadow-lg p-6">
+          <h3 className="text-2xl font-semibold mb-4 text-gray-700">Kurier: {selectedCourier.courier_id}</h3>
           <table className="min-w-full bg-white border-collapse border border-gray-200">
             <thead className="bg-gray-100">
               <tr>
@@ -248,11 +241,9 @@ const Suppliers = () => {
                   <tr key={order.id} className="hover:bg-gray-50">
                     <td className="py-3 px-4 border border-gray-200">{order.id}</td>
                     <td className="py-3 px-4 border border-gray-200">{order.address}</td>
-                    <td className="py-3 px-4 border border-gray-200">{formatDate(order.delivery_time) || 'Nie zakończona'}</td>
-                    <td className="py-3 px-4 border border-gray-200">{formatDuration(order.estimated_time) || 'N/A'}</td>
-                    <td className="py-3 px-4 border border-gray-200">
-                      {order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}
-                    </td>
+                    <td className="py-3 px-4 border border-gray-200">{formatDate(order.delivery_time)}</td>
+                    <td className="py-3 px-4 border border-gray-200">{formatDuration(order.estimated_time)}</td>
+                    <td className="py-3 px-4 border border-gray-200">{order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}</td>
                     <td className="py-3 px-4 border border-gray-200">
                       <button
                         onClick={() => handleRemoveOrder(order.id)}
@@ -275,9 +266,8 @@ const Suppliers = () => {
         </div>
       )}
 
-      {/* Lista wszystkich zamówień */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h3 className="text-xl font-semibold mb-4 text-gray-600">Wszystkie Dostawy</h3>
+      <div className="bg-white rounded-lg shadow-lg p-6">
+        <h3 className="text-2xl font-semibold mb-4 text-gray-700">Wszystkie Dostawy</h3>
         <table className="min-w-full bg-white border-collapse border border-gray-200">
           <thead className="bg-gray-100">
             <tr>
@@ -295,11 +285,9 @@ const Suppliers = () => {
               <tr key={order.id} className="hover:bg-gray-50">
                 <td className="py-3 px-4 border border-gray-200">{order.id}</td>
                 <td className="py-3 px-4 border border-gray-200">{order.address}</td>
-                <td className="py-3 px-4 border border-gray-200">{formatDate(order.delivery_time) || 'Nie zakończona'}</td>
-                <td className="py-3 px-4 border border-gray-200">{formatDuration(order.estimated_time) || 'N/A'}</td>
-                <td className="py-3 px-4 border border-gray-200">
-                  {order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}
-                </td>
+                <td className="py-3 px-4 border border-gray-200">{formatDate(order.delivery_time)}</td>
+                <td className="py-3 px-4 border border-gray-200">{formatDuration(order.estimated_time)}</td>
+                <td className="py-3 px-4 border border-gray-200">{order.status === 'delivered' ? 'Dostarczone' : 'W trakcie'}</td>
                 <td className="py-3 px-4 border border-gray-200">{order.courier_id || 'Nie przypisane'}</td>
                 <td className="py-3 px-4 border border-gray-200">
                   {order.courier_id ? (
@@ -326,9 +314,7 @@ const Suppliers = () => {
 
                       {/* Przycisk do automatycznego przypisania */}
                       <button
-                        onClick={() =>
-                          autoAssignOrder(order.id, { lat: order.latitude, lng: order.longitude })
-                        }
+                        onClick={() => autoAssignOrder(order.id, { lat: order.latitude, lng: order.longitude })}
                         className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
                       >
                         Wybierz automatycznie

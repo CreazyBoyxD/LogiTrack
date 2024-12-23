@@ -10,6 +10,7 @@ import Warehouse from './components/Warehouse';
 import Tracking from './components/Tracking';
 import DeliveryManagement from './components/DeliveryManagement';
 import Reports from './components/Reports';
+import UserManagement from './components/UserManagement';
 import NotAuthorized from './components/NotAuthorized';
 import FAQ from './components/FAQ';
 import TermsAndConditions from './components/TermsAndConditions';
@@ -91,6 +92,14 @@ function App() {
               element={
                 isAuthenticated && checkRoleAccess(['admin', 'magazynier'])
                   ? <DeliveryManagement />
+                  : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
+              }
+            />
+            <Route
+              path="/user-management"
+              element={
+                isAuthenticated && checkRoleAccess(['admin'])
+                  ? <UserManagement />
                   : <Navigate to={isAuthenticated ? '/not-authorized' : '/login'} />
               }
             />

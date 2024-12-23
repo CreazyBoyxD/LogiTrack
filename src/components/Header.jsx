@@ -10,7 +10,7 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
 
   // Define accessible links based on role
   const accessibleLinks = {
-    admin: ['/', '/warehouse', '/tracking', '/suppliers', '/reports', '/deliveries'],
+    admin: ['/', '/warehouse', '/tracking', '/suppliers', '/reports', '/deliveries', '/user-management'],
     kurier: ['/', '/tracking'],
     magazynier: ['/', '/warehouse', '/deliveries'],
     gość: ['/']
@@ -46,8 +46,7 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
           {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:text-yellow-400 transition">Zarządzanie Kurierami</Link>}
           {roleLinks.includes('/deliveries') && <Link to="/deliveries" className="hover:text-yellow-400 transition">Zarządzanie Dostawami</Link>}
           {roleLinks.includes('/reports') && <Link to="/reports" className="hover:text-yellow-400 transition">Raporty</Link>}
-          <Link to="/faq" className="hover:text-yellow-400 transition">FAQ</Link>
-          <Link to="/terms-and-conditions" className="hover:text-yellow-400 transition">Warunki Korzystania</Link>
+          {roleLinks.includes('/user-management') && <Link to="/user-management" className="hover:text-yellow-400 transition">Zarządzanie Użytkownikami</Link>}
         </nav>
 
         {/* Desktop profile links */}
