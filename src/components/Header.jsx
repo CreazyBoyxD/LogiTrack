@@ -74,8 +74,7 @@ const Header = ({ onLogout, isAuthenticated, role }) => {
             {roleLinks.includes('/suppliers') && <Link to="/suppliers" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Kurierami</Link>}
             {roleLinks.includes('/deliveries') && <Link to="/deliveries" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Dostawami</Link>}
             {roleLinks.includes('/reports') && <Link to="/reports" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Raporty</Link>}
-            <Link to="/faq" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">FAQ</Link>
-            <Link to="/terms-and-conditions" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Warunki Korzystania</Link>
+            {roleLinks.includes('/user-management') && <Link to="/user-management" className="hover:bg-blue-600 hover:rounded-lg p-2 transition">Zarządzanie Użytkownikami</Link>}
           </nav>
           <div className="flex flex-col space-y-2 p-4 text-center border-t border-blue-500">
             {isAuthenticated ? (
